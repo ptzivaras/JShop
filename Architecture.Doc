@@ -1,0 +1,129 @@
+❌
+############################################################################################################
+############################################################################################################
+Το συνολικό domain DB Design
+User
+ ├── Orders
+ │     └── OrderItems
+ │            └── Product
+ │
+ └── ShoppingCart
+        └── CartItems
+               └── Product
+
+Category
+   └── Products
+
+Tables Design
+1. User(Για JWT authentication)
+-id
+-username
+-email
+-password
+-role
+-created_at
+Σχέσεις:
+User
+ ├── 1 → * Orders
+ └── 1 → 1 ShoppingCart
+Σκέψη:
+-κάθε χρήστης έχει ένα cart
+-μπορεί να έχει πολλά orders
+
+2. Category
+-id
+-name
+-description
+Σχέση:
+Category
+ └── 1 → * Products
+
+3. Product
+-id
+-name
+-description
+-price
+-stockQuantity
+-category_id
+Σχέση:
+Product
+ └── * → 1 Category
+ 
+4. Order
+-id
+-user_id
+-order_date
+-total_price
+-status
+Σκέψη:
+-order belongs to user
+-order έχει πολλά items
+Order
+ └── 1 → * OrderItems
+
+5. OrderItem
+-id
+-order_id
+-product_id
+-quantity
+-unit_price
+Γιατί υπάρχει;
+Γιατί το price μπορεί να αλλάξει στο μέλλον.
+Άρα στο order αποθηκεύουμε το price εκείνη τη στιγμή.
+
+6. ShoppingCart
+-id
+-user_id
+Σχέση:
+ShoppingCart
+ └── 1 → * CartItems
+ 
+7. CartItem
+-id
+-shopping_cart_id
+-product_id
+-quantity
+
+Πολύ σημαντικό design rule για τη Βαση!!!
+Πολλοί κάνουν αυτό το λάθος...
+Λαθος
+Order
+   List<Product>
+Σωστο
+Order
+   List<OrderItem>
+        Product
+        quantity
+        unitPrice
+		
+Σημαντική λεπτομέρεια που θα έκανα εγώ
+Θα έβαζα status στο order.
+-PENDING
+-PAID
+-SHIPPED
+-CANCELLED
+
+Τι καταλαβαινουμε για το Role στο Authentication/Authorization
+Αν το project έχει μόνο:
+-ADMIN
+-CUSTOMER
+τότε ΔΕΝ θα έφτιαχνα Role table.
+Απλά:
+role ENUM
+στο User.
+Role table χρειάζεται μόνο όταν έχεις:
+-users
+-roles
+-permissions
+-role_permissions
+δηλαδή enterprise authorization.
+
+Γιατί ΔΕΝ θα έβαζα άλλα tables
+Δεν θα έβαζα π.χ.
+-Payments
+-Addresses
+-Reviews
+-Discounts
+γιατί:
+το project θα γίνει πολύ μεγάλο
+για portfolio project δεν χρειάζεται.
