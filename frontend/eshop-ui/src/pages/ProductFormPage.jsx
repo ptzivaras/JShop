@@ -1,8 +1,92 @@
-import { useParams, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { getProductById, createProduct, updateProduct } from "../api/productApi";
+import { getAllCategories } from "../api/categoryApi";
 
 export default function ProductFormPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const isEdit = Boolean(id);
+
+  const [form, setForm] = useState({
+    name: "",
+    description: "",
+    price: "",
+    stockQuantity: "",
+    categoryId: "",
+  });
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await getAllCategories();
+        setCategories(response.data);
+      } catch (err) {
+        console.error("Failed to load categories");
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    if (!isEdit) return;
+    const fetchProduct = async () => {
+      try {
+        setLoading(true);
+        const response = await getProductById(id);
+        const p = response.data;
+        setForm({
+          name: p.name,
+          description: p.description || "",
+          price: p.price,
+          stockQuantity: p.stockQuantity,
+          categoryId: p.categoryId,
+        });
+      } catch (err) {
+        setError("Failed to load product.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProduct();
+  }, [id, isEdit]);
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    const payload = {
+      name: form.name,
+      description: form.description,
+      price: parseFloat(form.price),
+      stockQuantity: parseInt(form.stockQuantity, 10),
+      categoryId: parseInt(form.categoryId, 10),
+    };
+    try {
+      if (isEdit) {
+        await updateProduct(id, payload);
+      } else {
+        await createProduct(payload);
+      }
+      navigate("/products");
+    } catch (err) {
+      setError("Failed to save product. Please check your input.");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-8 text-center text-gray-500">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
@@ -15,12 +99,22 @@ export default function ProductFormPage() {
           {isEdit ? `Edit Product #${id}` : "Create New Product"}
         </h1>
 
-        <form className="space-y-5">
+        {error && (
+          <div className="mb-4 bg-red-50 text-red-600 px-4 py-3 rounded-lg text-sm">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
             <input
               type="text"
+              name="name"
+              value={form.name}
+              onChange={handleChange}
               placeholder="Enter product name"
+              required
               className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
           </div>
@@ -28,6 +122,9 @@ export default function ProductFormPage() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
             <textarea
+              name="description"
+              value={form.description}
+              onChange={handleChange}
               rows={4}
               placeholder="Enter product description"
               className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
@@ -39,8 +136,13 @@ export default function ProductFormPage() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
               <input
                 type="number"
+                name="price"
+                value={form.price}
+                onChange={handleChange}
                 step="0.01"
+                min="0"
                 placeholder="0.00"
+                required
                 className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               />
             </div>
@@ -48,7 +150,12 @@ export default function ProductFormPage() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Stock Quantity</label>
               <input
                 type="number"
+                name="stockQuantity"
+                value={form.stockQuantity}
+                onChange={handleChange}
+                min="0"
                 placeholder="0"
+                required
                 className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               />
             </div>
@@ -56,12 +163,19 @@ export default function ProductFormPage() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-            <select className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+            <select
+              name="categoryId"
+              value={form.categoryId}
+              onChange={handleChange}
+              required
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            >
               <option value="">Select a category</option>
-              <option value="1">Electronics</option>
-              <option value="2">Sports</option>
-              <option value="3">Home & Kitchen</option>
-              <option value="4">Accessories</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
             </select>
           </div>
 

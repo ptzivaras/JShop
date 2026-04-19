@@ -1,18 +1,54 @@
-import { useParams, Link } from "react-router-dom";
-
-const mockProduct = {
-  id: 1,
-  name: "Wireless Headphones",
-  description:
-    "Premium noise-canceling over-ear headphones with 30-hour battery life. Features active noise cancellation, comfortable memory foam ear cushions, and high-fidelity audio drivers for an immersive listening experience.",
-  price: 79.99,
-  stockQuantity: 25,
-  categoryId: 1,
-  categoryName: "Electronics",
-};
+import { useState, useEffect } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { getProductById, deleteProduct } from "../api/productApi";
 
 export default function ProductDetailPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        setLoading(true);
+        const response = await getProductById(id);
+        setProduct(response.data);
+      } catch (err) {
+        setError("Failed to load product.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProduct();
+  }, [id]);
+
+  const handleDelete = async () => {
+    if (!window.confirm("Are you sure you want to delete this product?")) return;
+    try {
+      await deleteProduct(id);
+      navigate("/products");
+    } catch (err) {
+      alert("Failed to delete product.");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-8 text-center text-gray-500">
+        Loading product...
+      </div>
+    );
+  }
+
+  if (error || !product) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-8 text-center text-red-500">
+        {error || "Product not found."}
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -27,17 +63,17 @@ export default function ProductDetailPage() {
           </div>
           <div className="md:w-1/2 p-8">
             <span className="text-xs font-medium text-indigo-600 bg-indigo-50 px-2 py-1 rounded">
-              {mockProduct.categoryName}
+              {product.categoryName}
             </span>
-            <h1 className="text-2xl font-bold text-gray-900 mt-3">{mockProduct.name}</h1>
-            <p className="text-sm text-gray-400 mt-1">Product ID: {id}</p>
-            <p className="text-gray-600 mt-4 leading-relaxed">{mockProduct.description}</p>
+            <h1 className="text-2xl font-bold text-gray-900 mt-3">{product.name}</h1>
+            <p className="text-sm text-gray-400 mt-1">Product ID: {product.id}</p>
+            <p className="text-gray-600 mt-4 leading-relaxed">{product.description}</p>
             <div className="mt-6">
-              <span className="text-3xl font-bold text-gray-900">${mockProduct.price.toFixed(2)}</span>
+              <span className="text-3xl font-bold text-gray-900">${product.price.toFixed(2)}</span>
             </div>
             <div className="mt-2">
-              <span className={`text-sm px-2 py-1 rounded ${mockProduct.stockQuantity > 0 ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
-                {mockProduct.stockQuantity > 0 ? `${mockProduct.stockQuantity} in stock` : "Out of stock"}
+              <span className={`text-sm px-2 py-1 rounded ${product.stockQuantity > 0 ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
+                {product.stockQuantity > 0 ? `${product.stockQuantity} in stock` : "Out of stock"}
               </span>
             </div>
             <div className="flex gap-3 mt-8">
@@ -50,7 +86,10 @@ export default function ProductDetailPage() {
               >
                 Edit
               </Link>
-              <button className="px-6 py-3 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition">
+              <button
+                onClick={handleDelete}
+                className="px-6 py-3 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition"
+              >
                 Delete
               </button>
             </div>
