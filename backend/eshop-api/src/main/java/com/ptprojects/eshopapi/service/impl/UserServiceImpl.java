@@ -5,6 +5,7 @@ import com.ptprojects.eshopapi.dtos.UserRequest;
 import com.ptprojects.eshopapi.dtos.UserResponse;
 import com.ptprojects.eshopapi.repository.UserRepository;
 import com.ptprojects.eshopapi.service.UserService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,9 +14,11 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserRepository userRepository) {
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -36,7 +39,7 @@ public class UserServiceImpl implements UserService {
     public UserResponse createUser(UserRequest request) {
         User user = new User();
         user.setUsername(request.getUsername());
-        user.setPassword(request.getPassword());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setEmail(request.getEmail());
         user.setRole(request.getRole());
         User saved = userRepository.save(user);
