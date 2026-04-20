@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { login } from "../api/authApi";
+import { useAuth } from "../context/AuthContext";
 
 export default function LoginPage() {
   const [form, setForm] = useState({ username: "", password: "" });
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -17,8 +18,7 @@ export default function LoginPage() {
     setError(null);
     setSubmitting(true);
     try {
-      const response = await login(form);
-      localStorage.setItem("token", response.data.token);
+      await login(form);
       navigate("/");
     } catch (err) {
       setError(err.response?.data?.message || "Login failed. Please check your credentials.");

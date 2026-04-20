@@ -2,20 +2,19 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getCart, removeItemFromCart } from "../api/cartApi";
 import { createOrder } from "../api/orderApi";
-
-// TODO: replace with real user from AuthContext
-const TEMP_USER_ID = 1;
+import { useAuth } from "../context/AuthContext";
 
 export default function CartPage() {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const fetchCart = async () => {
     try {
       setLoading(true);
-      const response = await getCart(TEMP_USER_ID);
+      const response = await getCart(user.id);
       setCartItems(response.data.cartItems || []);
     } catch (err) {
       setError("Failed to load cart.");
@@ -30,7 +29,7 @@ export default function CartPage() {
 
   const handleRemove = async (itemId) => {
     try {
-      await removeItemFromCart(TEMP_USER_ID, itemId);
+      await removeItemFromCart(user.id, itemId);
       setCartItems((prev) => prev.filter((i) => i.id !== itemId));
     } catch (err) {
       alert("Failed to remove item.");
@@ -40,7 +39,7 @@ export default function CartPage() {
   const handlePlaceOrder = async () => {
     if (!window.confirm("Place order with these items?")) return;
     try {
-      await createOrder(TEMP_USER_ID);
+      await createOrder(user.id);
       alert("Order placed successfully!");
       navigate("/orders");
     } catch (err) {

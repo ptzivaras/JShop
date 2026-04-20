@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 import { getUserById } from "../api/userApi";
-
-// TODO: replace with real user from AuthContext
-const TEMP_USER_ID = 1;
+import { useAuth } from "../context/AuthContext";
 
 export default function UserProfilePage() {
+  const { user: authUser } = useAuth();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -13,7 +12,7 @@ export default function UserProfilePage() {
     const fetchUser = async () => {
       try {
         setLoading(true);
-        const response = await getUserById(TEMP_USER_ID);
+        const response = await getUserById(authUser.id);
         setUser(response.data);
       } catch (err) {
         setError("Failed to load profile.");

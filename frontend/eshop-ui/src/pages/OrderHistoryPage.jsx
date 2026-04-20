@@ -1,9 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { getOrdersByUserId } from "../api/orderApi";
-
-// TODO: replace with real user from AuthContext
-const TEMP_USER_ID = 1;
+import { useAuth } from "../context/AuthContext";
 
 function formatDate(dateStr) {
   return new Date(dateStr).toLocaleDateString("en-US", {
@@ -19,12 +17,13 @@ export default function OrderHistoryPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
         setLoading(true);
-        const response = await getOrdersByUserId(TEMP_USER_ID);
+        const response = await getOrdersByUserId(user.id);
         setOrders(response.data);
       } catch (err) {
         setError("Failed to load orders.");
