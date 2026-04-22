@@ -1,13 +1,19 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { getProductById, deleteProduct } from "../api/productApi";
+import { addItemToCart } from "../api/cartApi";
+import { useAuth } from "../context/AuthContext";
 
 export default function ProductDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [quantity, setQuantity] = useState(1);
+  const [adding, setAdding] = useState(false);
+  const [addMessage, setAddMessage] = useState("");
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -31,6 +37,32 @@ export default function ProductDetailPage() {
       navigate("/products");
     } catch (err) {
       alert("Failed to delete product.");
+    }
+  };
+
+  const handleAddToCart = async () => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    if (product.stockQuantity <= 0) {
+      setAddMessage("This product is out of stock.");
+      return;
+    }
+
+    try {
+      setAdding(true);
+      setAddMessage("");
+      await addItemToCart(user.id, {
+        productId: product.id,
+        quantity,
+      });
+      setAddMessage("Product added to cart.");
+    } catch (err) {
+      setAddMessage("Failed to add product to cart.");
+    } finally {
+      setAdding(false);
     }
   };
 
@@ -76,9 +108,37 @@ export default function ProductDetailPage() {
                 {product.stockQuantity > 0 ? `${product.stockQuantity} in stock` : "Out of stock"}
               </span>
             </div>
+            <div className="mt-4 flex items-center gap-3">
+              <label htmlFor="quantity" className="text-sm text-gray-600">
+                Qty
+              </label>
+              <input
+                id="quantity"
+                type="number"
+                min="1"
+                max={Math.max(product.stockQuantity || 1, 1)}
+                value={quantity}
+                onChange={(e) => {
+                  const value = Number(e.target.value);
+                  if (Number.isNaN(value)) return;
+                  const bounded = Math.max(1, Math.min(value, Math.max(product.stockQuantity || 1, 1)));
+                  setQuantity(bounded);
+                }}
+                className="w-20 border border-gray-300 rounded px-2 py-1"
+              />
+            </div>
+            {addMessage && (
+              <p className={`mt-3 text-sm ${addMessage.includes("Failed") || addMessage.includes("out of stock") ? "text-red-600" : "text-green-600"}`}>
+                {addMessage}
+              </p>
+            )}
             <div className="flex gap-3 mt-8">
-              <button className="flex-1 bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition font-medium">
-                Add to Cart
+              <button
+                onClick={handleAddToCart}
+                disabled={adding || product.stockQuantity <= 0}
+                className="flex-1 bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition font-medium disabled:bg-indigo-300 disabled:cursor-not-allowed"
+              >
+                {adding ? "Adding..." : "Add to Cart"}
               </button>
               <Link
                 to={`/products/${id}/edit`}
