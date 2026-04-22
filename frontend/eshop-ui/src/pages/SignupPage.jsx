@@ -2,12 +2,12 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-export default function LoginPage() {
-  const [form, setForm] = useState({ username: "", password: "" });
+export default function SignupPage() {
+  const [form, setForm] = useState({ username: "", email: "", password: "" });
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { register } = useAuth();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -18,10 +18,10 @@ export default function LoginPage() {
     setError(null);
     setSubmitting(true);
     try {
-      await login(form);
+      await register(form);
       navigate("/");
     } catch (err) {
-      setError(err.response?.data?.message || "Login failed. Please check your credentials.");
+      setError(err.response?.data?.message || "Registration failed. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -31,8 +31,8 @@ export default function LoginPage() {
     <div className="min-h-[80vh] flex items-center justify-center px-4">
       <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Sign in to JShop</h1>
-          <p className="text-gray-500 mt-2">Welcome back! Please enter your credentials.</p>
+          <h1 className="text-2xl font-bold text-gray-900">Create your JShop account</h1>
+          <p className="text-gray-500 mt-2">Sign up to start shopping.</p>
         </div>
 
         {error && (
@@ -49,7 +49,19 @@ export default function LoginPage() {
               name="username"
               value={form.username}
               onChange={handleChange}
-              placeholder="Enter your username"
+              placeholder="Choose a username"
+              required
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <input
+              type="email"
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              placeholder="Enter your email"
               required
               className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
@@ -61,8 +73,9 @@ export default function LoginPage() {
               name="password"
               value={form.password}
               onChange={handleChange}
-              placeholder="Enter your password"
+              placeholder="Create a password"
               required
+              minLength={6}
               className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
           </div>
@@ -71,14 +84,14 @@ export default function LoginPage() {
             disabled={submitting}
             className="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition font-medium disabled:opacity-50"
           >
-            {submitting ? "Signing in..." : "Sign In"}
+            {submitting ? "Creating account..." : "Sign Up"}
           </button>
         </form>
 
         <p className="text-center text-sm text-gray-500 mt-6">
-          Don't have an account?{" "}
-          <Link to="/register" className="text-indigo-600 hover:text-indigo-800 font-medium">
-            Sign up
+          Already have an account? {" "}
+          <Link to="/login" className="text-indigo-600 hover:text-indigo-800 font-medium">
+            Sign in
           </Link>
         </p>
       </div>
