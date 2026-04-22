@@ -11,6 +11,7 @@ public class OrderResponse {
     private String username;
     private LocalDateTime orderDate;
     private BigDecimal totalPrice;
+    private String status;
     private List<OrderItemResponse> orderItems;
 
     public OrderResponse() {
@@ -54,6 +55,14 @@ public class OrderResponse {
 
     public void setTotalPrice(BigDecimal totalPrice) {
         this.totalPrice = totalPrice;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public List<OrderItemResponse> getOrderItems() {

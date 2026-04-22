@@ -67,6 +67,7 @@ public class OrderServiceImpl implements OrderService {
         Order order = new Order();
         order.setUser(user);
         order.setOrderDate(LocalDateTime.now());
+        order.setStatus(OrderStatus.PENDING);
 
         List<OrderItem> orderItems = new ArrayList<>();
         BigDecimal totalPrice = BigDecimal.ZERO;
@@ -95,11 +96,26 @@ public class OrderServiceImpl implements OrderService {
         return mapToResponse(savedOrder);
     }
 
+    @Override
+    public OrderResponse updateOrderStatus(Long id, OrderStatus status) {
+        if (status == null) {
+            throw new RuntimeException("Order status is required");
+        }
+
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
+
+        order.setStatus(status);
+        Order savedOrder = orderRepository.save(order);
+        return mapToResponse(savedOrder);
+    }
+
     private OrderResponse mapToResponse(Order order) {
         OrderResponse response = new OrderResponse();
         response.setId(order.getId());
         response.setOrderDate(order.getOrderDate());
         response.setTotalPrice(order.getTotalPrice());
+        response.setStatus(order.getStatus() != null ? order.getStatus().name() : OrderStatus.PENDING.name());
         if (order.getUser() != null) {
             response.setUserId(order.getUser().getId());
             response.setUsername(order.getUser().getUsername());

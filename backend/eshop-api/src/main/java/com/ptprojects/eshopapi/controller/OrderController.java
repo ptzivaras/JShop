@@ -1,6 +1,7 @@
 package com.ptprojects.eshopapi.controller;
 
 import com.ptprojects.eshopapi.dtos.OrderResponse;
+import com.ptprojects.eshopapi.dtos.UpdateOrderStatusRequest;
 import com.ptprojects.eshopapi.service.OrderService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,5 +42,12 @@ public class OrderController {
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<OrderResponse> createOrder(@PathVariable Long userId) {
         return ResponseEntity.status(HttpStatus.CREATED).body(orderService.createOrder(userId));
+    }
+
+    @PutMapping("/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<OrderResponse> updateOrderStatus(@PathVariable Long id,
+                                                           @RequestBody UpdateOrderStatusRequest request) {
+        return ResponseEntity.ok(orderService.updateOrderStatus(id, request.getStatus()));
     }
 }

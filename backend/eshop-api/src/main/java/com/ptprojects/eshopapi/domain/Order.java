@@ -22,6 +22,10 @@ public class Order {
 
     private BigDecimal totalPrice;
 
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private OrderStatus status;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderItem> orderItems;
 
@@ -64,6 +68,14 @@ public class Order {
 
     public void setTotalPrice(BigDecimal totalPrice) {
         this.totalPrice = totalPrice;
+    }
+
+    public OrderStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(OrderStatus status) {
+        this.status = status;
     }
 
     public List<OrderItem> getOrderItems() {

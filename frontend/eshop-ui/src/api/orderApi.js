@@ -15,3 +15,7 @@ export const getOrdersByUserId = (userId) => {
 export const createOrder = (userId) => {
   return axiosClient.post(`/orders/user/${userId}`);
 };
+
+export const updateOrderStatus = (orderId, status) => {
+  return axiosClient.put(`/orders/${orderId}/status`, { status });
+};
