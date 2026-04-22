@@ -5,6 +5,7 @@ import com.ptprojects.eshopapi.dtos.ShoppingCartResponse;
 import com.ptprojects.eshopapi.service.ShoppingCartService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -18,11 +19,13 @@ public class ShoppingCartController {
     }
 
     @GetMapping("/{userId}")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<ShoppingCartResponse> getCart(@PathVariable Long userId) {
         return ResponseEntity.ok(shoppingCartService.getCartByUserId(userId));
     }
 
     @PostMapping("/{userId}/items")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<ShoppingCartResponse> addItemToCart(
             @PathVariable Long userId,
             @RequestBody AddToCartRequest request) {
@@ -31,6 +34,7 @@ public class ShoppingCartController {
     }
 
     @DeleteMapping("/{userId}/items/{itemId}")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<Void> removeItemFromCart(
             @PathVariable Long userId,
             @PathVariable Long itemId) {

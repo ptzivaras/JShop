@@ -14,6 +14,7 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [adding, setAdding] = useState(false);
   const [addMessage, setAddMessage] = useState("");
+  const isAdmin = user?.role === "ADMIN";
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -140,18 +141,22 @@ export default function ProductDetailPage() {
               >
                 {adding ? "Adding..." : "Add to Cart"}
               </button>
-              <Link
-                to={`/products/${id}/edit`}
-                className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-center"
-              >
-                Edit
-              </Link>
-              <button
-                onClick={handleDelete}
-                className="px-6 py-3 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition"
-              >
-                Delete
-              </button>
+              {isAdmin && (
+                <>
+                  <Link
+                    to={`/products/${id}/edit`}
+                    className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-center"
+                  >
+                    Edit
+                  </Link>
+                  <button
+                    onClick={handleDelete}
+                    className="px-6 py-3 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition"
+                  >
+                    Delete
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>

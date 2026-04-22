@@ -2,11 +2,14 @@ import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { getProductById, createProduct, updateProduct } from "../api/productApi";
 import { getAllCategories } from "../api/categoryApi";
+import { useAuth } from "../context/AuthContext";
 
 export default function ProductFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const isEdit = Boolean(id);
+  const { user, loading: authLoading } = useAuth();
+  const isAdmin = user?.role === "ADMIN";
 
   const [form, setForm] = useState({
     name: "",
@@ -84,6 +87,31 @@ export default function ProductFormPage() {
     return (
       <div className="max-w-2xl mx-auto px-4 py-8 text-center text-gray-500">
         Loading...
+      </div>
+    );
+  }
+
+  if (authLoading) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-8 text-center text-gray-500">
+        Checking access...
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-8">
+        <div className="bg-white rounded-lg shadow p-8 text-center">
+          <h1 className="text-2xl font-bold text-gray-900">Admin access required</h1>
+          <p className="text-gray-600 mt-3">Only administrators can create or edit products.</p>
+          <Link
+            to="/products"
+            className="inline-block mt-6 bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition"
+          >
+            Back to Products
+          </Link>
+        </div>
       </div>
     );
   }

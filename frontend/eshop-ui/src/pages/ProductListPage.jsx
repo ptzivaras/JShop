@@ -1,11 +1,14 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { getAllProducts, deleteProduct } from "../api/productApi";
+import { useAuth } from "../context/AuthContext";
 
 export default function ProductListPage() {
+  const { user } = useAuth();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const isAdmin = user?.role === "ADMIN";
 
   const fetchProducts = async () => {
     try {
@@ -53,12 +56,14 @@ export default function ProductListPage() {
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Products</h1>
-        <Link
-          to="/products/new"
-          className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
-        >
-          + Create Product
-        </Link>
+        {isAdmin && (
+          <Link
+            to="/products/new"
+            className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
+          >
+            + Create Product
+          </Link>
+        )}
       </div>
 
       {products.length === 0 ? (
@@ -88,20 +93,22 @@ export default function ProductListPage() {
                     {product.stockQuantity > 0 ? `${product.stockQuantity} in stock` : "Out of stock"}
                   </span>
                 </div>
-                <div className="flex gap-2 mt-4">
-                  <Link
-                    to={`/products/${product.id}/edit`}
-                    className="flex-1 text-center text-sm bg-gray-100 text-gray-700 px-3 py-2 rounded hover:bg-gray-200 transition"
-                  >
-                    Edit
-                  </Link>
-                  <button
-                    onClick={() => handleDelete(product.id)}
-                    className="flex-1 text-sm bg-red-50 text-red-600 px-3 py-2 rounded hover:bg-red-100 transition"
-                  >
-                    Delete
-                  </button>
-                </div>
+                {isAdmin && (
+                  <div className="flex gap-2 mt-4">
+                    <Link
+                      to={`/products/${product.id}/edit`}
+                      className="flex-1 text-center text-sm bg-gray-100 text-gray-700 px-3 py-2 rounded hover:bg-gray-200 transition"
+                    >
+                      Edit
+                    </Link>
+                    <button
+                      onClick={() => handleDelete(product.id)}
+                      className="flex-1 text-sm bg-red-50 text-red-600 px-3 py-2 rounded hover:bg-red-100 transition"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           ))}
