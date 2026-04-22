@@ -9,6 +9,8 @@ public interface ProductService {
 
     List<ProductResponse> getAllProducts();
 
+    List<ProductResponse> searchProducts(String q, Long categoryId);
+
     ProductResponse getProductById(Long id);
 
     ProductResponse createProduct(ProductRequest request);

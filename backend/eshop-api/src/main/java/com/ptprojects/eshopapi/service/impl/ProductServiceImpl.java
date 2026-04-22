@@ -30,6 +30,25 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public List<ProductResponse> searchProducts(String q, Long categoryId) {
+        boolean hasQuery = q != null && !q.isBlank();
+        boolean hasCategory = categoryId != null;
+
+        List<Product> results;
+        if (hasQuery && hasCategory) {
+            results = productRepository.findByNameContainingIgnoreCaseAndCategoryId(q, categoryId);
+        } else if (hasQuery) {
+            results = productRepository.findByNameContainingIgnoreCase(q);
+        } else if (hasCategory) {
+            results = productRepository.findByCategoryId(categoryId);
+        } else {
+            results = productRepository.findAll();
+        }
+
+        return results.stream().map(this::mapToResponse).toList();
+    }
+
+    @Override
     public ProductResponse getProductById(Long id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));

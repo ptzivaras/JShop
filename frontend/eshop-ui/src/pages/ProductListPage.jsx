@@ -1,30 +1,58 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { getAllProducts, deleteProduct } from "../api/productApi";
+import { searchProducts, deleteProduct } from "../api/productApi";
+import { getAllCategories } from "../api/categoryApi";
 import { useAuth } from "../context/AuthContext";
 
 export default function ProductListPage() {
   const { user } = useAuth();
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchInput, setSearchInput] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
   const isAdmin = user?.role === "ADMIN";
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async (q, categoryId) => {
     try {
       setLoading(true);
-      const response = await getAllProducts();
+      setError(null);
+      const response = await searchProducts(q || "", categoryId || null);
       setProducts(response.data);
     } catch (err) {
       setError("Failed to load products.");
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchProducts();
+    getAllCategories()
+      .then((res) => setCategories(res.data))
+      .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    fetchProducts("", "");
+  }, [fetchProducts]);
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    fetchProducts(searchInput, selectedCategory);
+  };
+
+  const handleCategoryChange = (e) => {
+    const val = e.target.value;
+    setSelectedCategory(val);
+    fetchProducts(searchInput, val);
+  };
+
+  const handleReset = () => {
+    setSearchInput("");
+    setSelectedCategory("");
+    fetchProducts("", "");
+  };
 
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this product?")) return;
@@ -36,25 +64,9 @@ export default function ProductListPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 py-8 text-center text-gray-500">
-        Loading products...
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 py-8 text-center text-red-500">
-        {error}
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Products</h1>
         {isAdmin && (
           <Link
@@ -66,9 +78,55 @@ export default function ProductListPage() {
         )}
       </div>
 
-      {products.length === 0 ? (
+      <form onSubmit={handleSearch} className="flex flex-wrap gap-3 mb-8">
+        <input
+          type="text"
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          placeholder="Search products..."
+          className="flex-1 min-w-48 border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+        />
+        <select
+          value={selectedCategory}
+          onChange={handleCategoryChange}
+          className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+        >
+          <option value="">All categories</option>
+          {categories.map((cat) => (
+            <option key={cat.id} value={cat.id}>
+              {cat.name}
+            </option>
+          ))}
+        </select>
+        <button
+          type="submit"
+          className="bg-indigo-600 text-white px-5 py-2 rounded-lg hover:bg-indigo-700 transition"
+        >
+          Search
+        </button>
+        {(searchInput || selectedCategory) && (
+          <button
+            type="button"
+            onClick={handleReset}
+            className="bg-gray-100 text-gray-700 px-5 py-2 rounded-lg hover:bg-gray-200 transition"
+          >
+            Reset
+          </button>
+        )}
+      </form>
+
+      {loading ? (
+        <div className="text-center py-16 text-gray-500">Loading products...</div>
+      ) : error ? (
+        <div className="text-center py-16 text-red-500">{error}</div>
+      ) : products.length === 0 ? (
         <div className="text-center py-16 text-gray-500">
-          No products found. Create one to get started.
+          No products found.{" "}
+          {(searchInput || selectedCategory) && (
+            <button onClick={handleReset} className="text-indigo-600 hover:text-indigo-800 font-medium">
+              Clear filters
+            </button>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

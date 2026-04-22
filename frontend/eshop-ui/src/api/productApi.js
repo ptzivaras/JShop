@@ -4,6 +4,13 @@ export const getAllProducts = () => {
   return axiosClient.get("/products");
 };
 
+export const searchProducts = (q, categoryId) => {
+  const params = {};
+  if (q) params.q = q;
+  if (categoryId) params.categoryId = categoryId;
+  return axiosClient.get("/products/search", { params });
+};
+
 export const getProductById = (id) => {
   return axiosClient.get(`/products/${id}`);
 };
