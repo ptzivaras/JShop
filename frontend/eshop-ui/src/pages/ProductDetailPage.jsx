@@ -55,7 +55,7 @@ export default function ProductDetailPage() {
     try {
       setAdding(true);
       setAddMessage("");
-      await addItemToCart(user.id, {
+      await addItemToCart({
         productId: product.id,
         quantity,
       });

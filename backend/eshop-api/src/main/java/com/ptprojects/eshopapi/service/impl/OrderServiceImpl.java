@@ -4,6 +4,7 @@ import com.ptprojects.eshopapi.domain.*;
 import com.ptprojects.eshopapi.dtos.OrderItemResponse;
 import com.ptprojects.eshopapi.dtos.OrderResponse;
 import com.ptprojects.eshopapi.repository.OrderRepository;
+import com.ptprojects.eshopapi.repository.ProductRepository;
 import com.ptprojects.eshopapi.repository.ShoppingCartRepository;
 import com.ptprojects.eshopapi.repository.UserRepository;
 import com.ptprojects.eshopapi.service.OrderService;
@@ -21,13 +22,16 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final ShoppingCartRepository shoppingCartRepository;
     private final UserRepository userRepository;
+    private final ProductRepository productRepository;
 
     public OrderServiceImpl(OrderRepository orderRepository,
                             ShoppingCartRepository shoppingCartRepository,
-                            UserRepository userRepository) {
+                            UserRepository userRepository,
+                            ProductRepository productRepository) {
         this.orderRepository = orderRepository;
         this.shoppingCartRepository = shoppingCartRepository;
         this.userRepository = userRepository;
+        this.productRepository = productRepository;
     }
 
     @Override
@@ -64,6 +68,14 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("Shopping cart is empty");
         }
 
+        for (CartItem cartItem : cart.getCartItems()) {
+            Product product = cartItem.getProduct();
+            int availableStock = product.getStockQuantity() != null ? product.getStockQuantity() : 0;
+            if (availableStock < cartItem.getQuantity()) {
+                throw new RuntimeException("Insufficient stock for product: " + product.getName());
+            }
+        }
+
         Order order = new Order();
         order.setUser(user);
         order.setOrderDate(LocalDateTime.now());
@@ -73,15 +85,19 @@ public class OrderServiceImpl implements OrderService {
         BigDecimal totalPrice = BigDecimal.ZERO;
 
         for (CartItem cartItem : cart.getCartItems()) {
+            Product product = cartItem.getProduct();
+            product.setStockQuantity(product.getStockQuantity() - cartItem.getQuantity());
+            productRepository.save(product);
+
             OrderItem orderItem = new OrderItem();
             orderItem.setOrder(order);
-            orderItem.setProduct(cartItem.getProduct());
+            orderItem.setProduct(product);
             orderItem.setQuantity(cartItem.getQuantity());
-            orderItem.setUnitPrice(cartItem.getProduct().getPrice());
+            orderItem.setUnitPrice(product.getPrice());
             orderItems.add(orderItem);
 
             totalPrice = totalPrice.add(
-                    cartItem.getProduct().getPrice().multiply(BigDecimal.valueOf(cartItem.getQuantity()))
+                product.getPrice().multiply(BigDecimal.valueOf(cartItem.getQuantity()))
             );
         }
 

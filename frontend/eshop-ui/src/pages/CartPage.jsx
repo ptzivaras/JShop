@@ -14,7 +14,7 @@ export default function CartPage() {
   const fetchCart = async () => {
     try {
       setLoading(true);
-      const response = await getCart(user.id);
+      const response = await getCart();
       setCartItems(response.data.cartItems || []);
     } catch (err) {
       setError("Failed to load cart.");
@@ -24,12 +24,15 @@ export default function CartPage() {
   };
 
   useEffect(() => {
+    if (!user) {
+      return;
+    }
     fetchCart();
-  }, []);
+  }, [user?.id]);
 
   const handleRemove = async (itemId) => {
     try {
-      await removeItemFromCart(user.id, itemId);
+      await removeItemFromCart(itemId);
       setCartItems((prev) => prev.filter((i) => i.id !== itemId));
     } catch (err) {
       alert("Failed to remove item.");
@@ -39,7 +42,7 @@ export default function CartPage() {
   const handlePlaceOrder = async () => {
     if (!window.confirm("Place order with these items?")) return;
     try {
-      await createOrder(user.id);
+      await createOrder();
       alert("Order placed successfully!");
       navigate("/orders");
     } catch (err) {

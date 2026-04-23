@@ -8,12 +8,12 @@ export const getOrderById = (id) => {
   return axiosClient.get(`/orders/${id}`);
 };
 
-export const getOrdersByUserId = (userId) => {
-  return axiosClient.get(`/orders/user/${userId}`);
+export const getMyOrders = () => {
+  return axiosClient.get("/orders/me");
 };
 
-export const createOrder = (userId) => {
-  return axiosClient.post(`/orders/user/${userId}`);
+export const createOrder = () => {
+  return axiosClient.post("/orders/me");
 };
 
 export const updateOrderStatus = (orderId, status) => {

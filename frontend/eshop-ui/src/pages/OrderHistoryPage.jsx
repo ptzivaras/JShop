@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { getAllOrders, getOrdersByUserId, updateOrderStatus } from "../api/orderApi";
+import { getAllOrders, getMyOrders, updateOrderStatus } from "../api/orderApi";
 import { useAuth } from "../context/AuthContext";
 
 const ORDER_STATUSES = ["PENDING", "CONFIRMED", "SHIPPED", "DELIVERED", "CANCELLED"];
@@ -53,7 +53,7 @@ export default function OrderHistoryPage() {
       try {
         setLoading(true);
         setError(null);
-        const response = isAdmin ? await getAllOrders() : await getOrdersByUserId(user.id);
+        const response = isAdmin ? await getAllOrders() : await getMyOrders();
         setOrders(response.data);
       } catch (err) {
         setError("Failed to load orders.");
