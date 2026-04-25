@@ -65,14 +65,14 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new RuntimeException("Shopping cart not found for user: " + userId));
 
         if (cart.getCartItems() == null || cart.getCartItems().isEmpty()) {
-            throw new RuntimeException("Shopping cart is empty");
+            throw new IllegalStateException("Your shopping cart is empty.");
         }
 
         for (CartItem cartItem : cart.getCartItems()) {
             Product product = cartItem.getProduct();
             int availableStock = product.getStockQuantity() != null ? product.getStockQuantity() : 0;
             if (availableStock < cartItem.getQuantity()) {
-                throw new RuntimeException("Insufficient stock for product: " + product.getName());
+                throw new IllegalStateException("Insufficient stock for product: " + product.getName());
             }
         }
 

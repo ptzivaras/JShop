@@ -8,6 +8,8 @@ export default function CartPage() {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [orderError, setOrderError] = useState(null);
+  const [placingOrder, setPlacingOrder] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -41,12 +43,20 @@ export default function CartPage() {
 
   const handlePlaceOrder = async () => {
     if (!window.confirm("Place order with these items?")) return;
+    setOrderError(null);
     try {
+      setPlacingOrder(true);
       await createOrder();
       alert("Order placed successfully!");
       navigate("/orders");
     } catch (err) {
-      alert("Failed to place order.");
+      const apiMessage =
+        err?.response?.data?.error ||
+        err?.response?.data?.message ||
+        "Failed to place order.";
+      setOrderError(apiMessage);
+    } finally {
+      setPlacingOrder(false);
     }
   };
 
@@ -115,11 +125,17 @@ export default function CartPage() {
               <span>Total</span>
               <span>${total.toFixed(2)}</span>
             </div>
+            {orderError && (
+              <div className="mt-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {orderError}
+              </div>
+            )}
             <button
               onClick={handlePlaceOrder}
+              disabled={placingOrder}
               className="w-full mt-4 bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition font-medium"
             >
-              Place Order
+              {placingOrder ? "Placing order..." : "Place Order"}
             </button>
           </div>
         </div>

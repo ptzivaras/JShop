@@ -11,6 +11,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Map;
 import java.util.List;
 
 @RestController
@@ -62,10 +63,15 @@ public class OrderController {
 
     @PostMapping("/user/{userId}")
     @PreAuthorize("hasRole('CUSTOMER')")
-    public ResponseEntity<OrderResponse> createOrder(@PathVariable Long userId,
-                                                     Authentication authentication) {
+    public ResponseEntity<?> createOrder(@PathVariable Long userId,
+                                         Authentication authentication) {
         ensureOwnResource(userId, authentication);
-        return ResponseEntity.status(HttpStatus.CREATED).body(orderService.createOrder(userId));
+        try {
+            return ResponseEntity.status(HttpStatus.CREATED).body(orderService.createOrder(userId));
+        } catch (IllegalStateException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", ex.getMessage()));
+        }
     }
 
     @GetMapping("/me")
@@ -77,9 +83,14 @@ public class OrderController {
 
     @PostMapping("/me")
     @PreAuthorize("hasRole('CUSTOMER')")
-    public ResponseEntity<OrderResponse> createMyOrder(Authentication authentication) {
+    public ResponseEntity<?> createMyOrder(Authentication authentication) {
         Long currentUserId = resolveCurrentUserId(authentication);
-        return ResponseEntity.status(HttpStatus.CREATED).body(orderService.createOrder(currentUserId));
+        try {
+            return ResponseEntity.status(HttpStatus.CREATED).body(orderService.createOrder(currentUserId));
+        } catch (IllegalStateException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", ex.getMessage()));
+        }
     }
 
     @PutMapping("/{id}/status")
