@@ -10,6 +10,7 @@ import CartPage from "./pages/CartPage";
 import OrderHistoryPage from "./pages/OrderHistoryPage";
 import CategoriesPage from "./pages/CategoriesPage";
 import UserProfilePage from "./pages/UserProfilePage";
+import AdminDashboardPage from "./pages/AdminDashboardPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 
@@ -31,6 +32,7 @@ function App() {
             <Route path="/cart" element={<ProtectedRoute><CartPage /></ProtectedRoute>} />
             <Route path="/orders" element={<ProtectedRoute><OrderHistoryPage /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><UserProfilePage /></ProtectedRoute>} />
+            <Route path="/admin" element={<ProtectedRoute allowedRoles={["ADMIN"]}><AdminDashboardPage /></ProtectedRoute>} />
           </Routes>
         </div>
       </AuthProvider>
