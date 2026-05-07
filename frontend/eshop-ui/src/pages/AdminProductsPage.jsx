@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { getAllProducts, deleteProduct } from "../api/productApi";
 import { getAllCategories } from "../api/categoryApi";
+
+const LOW_STOCK_THRESHOLD = 5;
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState([]);
@@ -43,6 +45,14 @@ export default function AdminProductsPage() {
     return cat ? cat.name : "Unknown";
   };
 
+  const lowStockCount = useMemo(
+    () => products.filter((p) => {
+      const stock = Number(p.stockQuantity || 0);
+      return stock > 0 && stock <= LOW_STOCK_THRESHOLD;
+    }).length,
+    [products]
+  );
+
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-8 text-center text-gray-500">
@@ -76,7 +86,15 @@ export default function AdminProductsPage() {
           No products found. <Link to="/products/new" className="text-indigo-600 hover:text-indigo-800">Create one</Link>.
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        <>
+          <div className="mb-4 rounded-lg border border-yellow-200 bg-yellow-50 px-5 py-4 text-sm text-yellow-900">
+            {lowStockCount > 0 ? (
+              <span>{lowStockCount} product{lowStockCount === 1 ? "" : "s"} low on stock (≤ {LOW_STOCK_THRESHOLD}).</span>
+            ) : (
+              <span>All products have healthy inventory levels.</span>
+            )}
+          </div>
+          <div className="bg-white rounded-lg shadow overflow-hidden">
           <table className="w-full">
             <thead>
               <tr className="bg-gray-50 border-b text-left">
@@ -100,8 +118,8 @@ export default function AdminProductsPage() {
                   <td className="px-6 py-4 text-sm text-gray-500">{getCategoryName(product.categoryId)}</td>
                   <td className="px-6 py-4 text-sm text-gray-900">${Number(product.price).toFixed(2)}</td>
                   <td className="px-6 py-4 text-sm">
-                    <span className={`px-2 py-1 rounded text-xs ${product.stockQuantity > 0 ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
-                      {product.stockQuantity}
+                    <span className={`px-2 py-1 rounded text-xs ${product.stockQuantity > LOW_STOCK_THRESHOLD ? "bg-green-50 text-green-700" : product.stockQuantity > 0 ? "bg-yellow-50 text-yellow-700" : "bg-red-50 text-red-700"}`}>
+                      {product.stockQuantity} {product.stockQuantity > 0 && product.stockQuantity <= LOW_STOCK_THRESHOLD ? "(Low)" : ""}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
@@ -123,6 +141,7 @@ export default function AdminProductsPage() {
             </tbody>
           </table>
         </div>
+        </>
       )}
     </div>
   );

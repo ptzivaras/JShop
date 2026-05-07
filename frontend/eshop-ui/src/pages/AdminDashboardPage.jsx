@@ -5,6 +5,8 @@ import { getAllOrders } from "../api/orderApi";
 import { getAllProducts } from "../api/productApi";
 import { getAllCategories } from "../api/categoryApi";
 
+const LOW_STOCK_THRESHOLD = 5;
+
 function formatCurrency(value) {
   return Number(value || 0).toLocaleString("en-US", {
     style: "currency",
@@ -71,6 +73,11 @@ export default function AdminDashboardPage() {
       return acc;
     }, {});
 
+    const lowStockCount = products.filter((p) => {
+      const stock = Number(p.stockQuantity || 0);
+      return stock > 0 && stock <= LOW_STOCK_THRESHOLD;
+    }).length;
+
     return {
       users: users.length,
       orders: orders.length,
@@ -78,9 +85,19 @@ export default function AdminDashboardPage() {
       categories: categories.length,
       totalRevenue,
       outOfStockCount,
+      lowStockCount,
       statusCounts,
     };
   }, [users, orders, products, categories]);
+
+  const lowStockProducts = useMemo(() => {
+    return products
+      .filter((p) => {
+        const stock = Number(p.stockQuantity || 0);
+        return stock > 0 && stock <= LOW_STOCK_THRESHOLD;
+      })
+      .sort((a, b) => Number(a.stockQuantity || 0) - Number(b.stockQuantity || 0));
+  }, [products]);
 
   const recentOrders = useMemo(() => {
     return [...orders]
@@ -137,6 +154,35 @@ export default function AdminDashboardPage() {
           <p className="text-3xl font-bold text-gray-900 mt-1">{formatCurrency(stats.totalRevenue)}</p>
         </div>
       </div>
+
+      {stats.lowStockCount > 0 && (
+        <div className="grid grid-cols-1 gap-4 mb-6">
+          <div className="bg-yellow-50 border-l-4 border-yellow-400 rounded-lg p-5 text-yellow-900">
+            <p className="font-semibold">Inventory Alert</p>
+            <p className="text-sm mt-1">
+              {stats.lowStockCount} product{stats.lowStockCount === 1 ? "" : "s"} has low stock (≤ {LOW_STOCK_THRESHOLD}).
+              Review them in <Link to="/admin/products" className="font-semibold underline">Admin Products</Link>.
+            </p>
+          </div>
+          <div className="bg-white rounded-lg shadow p-5">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Low-stock products</h2>
+            <div className="space-y-3">
+              {lowStockProducts.slice(0, 5).map((product) => (
+                <div key={product.id} className="flex items-center justify-between gap-3 rounded-lg border border-yellow-100 bg-yellow-50 p-4">
+                  <div>
+                    <p className="font-medium text-gray-900">{product.name}</p>
+                    <p className="text-sm text-gray-600">ID {product.id} • {Number(product.stockQuantity || 0)} left</p>
+                  </div>
+                  <span className="text-sm font-semibold text-yellow-700">Low stock</span>
+                </div>
+              ))}
+              {lowStockProducts.length > 5 && (
+                <p className="text-sm text-gray-500">Showing top 5 low-stock items.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-white rounded-lg shadow overflow-hidden">
