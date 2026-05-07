@@ -11,6 +11,8 @@ import OrderHistoryPage from "./pages/OrderHistoryPage";
 import CategoriesPage from "./pages/CategoriesPage";
 import UserProfilePage from "./pages/UserProfilePage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
+import AdminProductsPage from "./pages/AdminProductsPage";
+import AdminOrdersPage from "./pages/AdminOrdersPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 
@@ -33,6 +35,8 @@ function App() {
             <Route path="/orders" element={<ProtectedRoute><OrderHistoryPage /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><UserProfilePage /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute allowedRoles={["ADMIN"]}><AdminDashboardPage /></ProtectedRoute>} />
+            <Route path="/admin/products" element={<ProtectedRoute allowedRoles={["ADMIN"]}><AdminProductsPage /></ProtectedRoute>} />
+            <Route path="/admin/orders" element={<ProtectedRoute allowedRoles={["ADMIN"]}><AdminOrdersPage /></ProtectedRoute>} />
           </Routes>
         </div>
       </AuthProvider>

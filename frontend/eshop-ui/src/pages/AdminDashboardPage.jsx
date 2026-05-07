@@ -181,8 +181,8 @@ export default function AdminDashboardPage() {
           <div className="mt-6 pt-4 border-t">
             <h3 className="text-sm font-semibold text-gray-800 mb-3">Quick Links</h3>
             <div className="space-y-2 text-sm">
-              <Link to="/products" className="block text-indigo-600 hover:text-indigo-800">Manage products</Link>
-              <Link to="/orders" className="block text-indigo-600 hover:text-indigo-800">Manage orders</Link>
+              <Link to="/admin/products" className="block text-indigo-600 hover:text-indigo-800">Manage products</Link>
+              <Link to="/admin/orders" className="block text-indigo-600 hover:text-indigo-800">Manage orders</Link>
               <Link to="/categories" className="block text-indigo-600 hover:text-indigo-800">Manage categories</Link>
             </div>
             <p className="text-xs text-gray-500 mt-4">Categories total: {stats.categories}</p>
