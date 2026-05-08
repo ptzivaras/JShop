@@ -41,6 +41,11 @@ public class OrderController {
         }
     }
 
+    private boolean isAdmin(Authentication authentication) {
+        return authentication.getAuthorities().stream()
+                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"));
+    }
+
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<OrderResponse>> getAllOrders() {
@@ -48,9 +53,16 @@ public class OrderController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<OrderResponse> getOrderById(@PathVariable Long id) {
-        return ResponseEntity.ok(orderService.getOrderById(id));
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<OrderResponse> getOrderById(@PathVariable Long id, Authentication authentication) {
+        OrderResponse response = orderService.getOrderById(id);
+        if (!isAdmin(authentication)) {
+            Long currentUserId = resolveCurrentUserId(authentication);
+            if (!response.getUserId().equals(currentUserId)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can only access your own orders");
+            }
+        }
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/user/{userId}")

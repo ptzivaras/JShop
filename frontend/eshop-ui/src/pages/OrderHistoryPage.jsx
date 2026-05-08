@@ -129,9 +129,11 @@ export default function OrderHistoryPage() {
         <div className="space-y-6">
           {orders.map((order) => (
             <div key={order.id} className="bg-white rounded-lg shadow overflow-hidden">
-              <div className="bg-gray-50 px-6 py-4 flex items-center justify-between border-b">
+              <div className="bg-gray-50 px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b">
                 <div>
-                  <span className="text-sm text-gray-500">Order #{order.id}</span>
+                  <Link to={`/orders/${order.id}`} className="text-sm font-semibold text-indigo-600 hover:text-indigo-800">
+                    Order #{order.id}
+                  </Link>
                   <p className="text-sm text-gray-400">{formatDate(order.orderDate)}</p>
                 </div>
                 <div className="flex items-center gap-3">
