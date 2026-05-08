@@ -12,13 +12,18 @@ export default function ProductListPage() {
   const [error, setError] = useState(null);
   const [searchInput, setSearchInput] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [stockStatus, setStockStatus] = useState("");
+  const [sortBy, setSortBy] = useState("name");
+  const [sortDir, setSortDir] = useState("asc");
   const isAdmin = user?.role === "ADMIN";
 
-  const fetchProducts = useCallback(async (q, categoryId) => {
+  const fetchProducts = useCallback(async (q, categoryId, minP, maxP, stock, sortB, sortD) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await searchProducts(q || "", categoryId || null);
+      const response = await searchProducts(q || "", categoryId || null, minP, maxP, stock, sortB, sortD);
       setProducts(response.data);
     } catch (err) {
       setError("Failed to load products.");
@@ -34,24 +39,29 @@ export default function ProductListPage() {
   }, []);
 
   useEffect(() => {
-    fetchProducts("", "");
+    fetchProducts("", "", null, null, "", "name", "asc");
   }, [fetchProducts]);
 
   const handleSearch = (e) => {
     e.preventDefault();
-    fetchProducts(searchInput, selectedCategory);
+    fetchProducts(searchInput, selectedCategory, minPrice ? parseFloat(minPrice) : null, maxPrice ? parseFloat(maxPrice) : null, stockStatus, sortBy, sortDir);
   };
 
   const handleCategoryChange = (e) => {
     const val = e.target.value;
     setSelectedCategory(val);
-    fetchProducts(searchInput, val);
+    fetchProducts(searchInput, val, minPrice ? parseFloat(minPrice) : null, maxPrice ? parseFloat(maxPrice) : null, stockStatus, sortBy, sortDir);
   };
 
   const handleReset = () => {
     setSearchInput("");
     setSelectedCategory("");
-    fetchProducts("", "");
+    setMinPrice("");
+    setMaxPrice("");
+    setStockStatus("");
+    setSortBy("name");
+    setSortDir("asc");
+    fetchProducts("", "", null, null, "", "name", "asc");
   };
 
   const handleDelete = async (id) => {
@@ -78,41 +88,113 @@ export default function ProductListPage() {
         )}
       </div>
 
-      <form onSubmit={handleSearch} className="flex flex-wrap gap-3 mb-8">
-        <input
-          type="text"
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-          placeholder="Search products..."
-          className="flex-1 min-w-48 border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-        />
-        <select
-          value={selectedCategory}
-          onChange={handleCategoryChange}
-          className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-        >
-          <option value="">All categories</option>
-          {categories.map((cat) => (
-            <option key={cat.id} value={cat.id}>
-              {cat.name}
-            </option>
-          ))}
-        </select>
-        <button
-          type="submit"
-          className="bg-indigo-600 text-white px-5 py-2 rounded-lg hover:bg-indigo-700 transition"
-        >
-          Search
-        </button>
-        {(searchInput || selectedCategory) && (
+      <form onSubmit={handleSearch} className="bg-white p-6 rounded-lg shadow mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+            <input
+              type="text"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder="Search products..."
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+            <select
+              value={selectedCategory}
+              onChange={handleCategoryChange}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            >
+              <option value="">All categories</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Min Price</label>
+            <input
+              type="number"
+              value={minPrice}
+              onChange={(e) => setMinPrice(e.target.value)}
+              placeholder="0"
+              min="0"
+              step="0.01"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Max Price</label>
+            <input
+              type="number"
+              value={maxPrice}
+              onChange={(e) => setMaxPrice(e.target.value)}
+              placeholder="1000"
+              min="0"
+              step="0.01"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Stock Status</label>
+            <select
+              value={stockStatus}
+              onChange={(e) => setStockStatus(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            >
+              <option value="">Any</option>
+              <option value="in-stock">In Stock</option>
+              <option value="low-stock">Low Stock</option>
+              <option value="out-of-stock">Out of Stock</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            >
+              <option value="name">Name</option>
+              <option value="price">Price</option>
+              <option value="stock">Stock</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Sort Direction</label>
+            <select
+              value={sortDir}
+              onChange={(e) => setSortDir(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            >
+              <option value="asc">Ascending</option>
+              <option value="desc">Descending</option>
+            </select>
+          </div>
+        </div>
+        <div className="flex gap-3">
           <button
-            type="button"
-            onClick={handleReset}
-            className="bg-gray-100 text-gray-700 px-5 py-2 rounded-lg hover:bg-gray-200 transition"
+            type="submit"
+            className="bg-indigo-600 text-white px-5 py-2 rounded-lg hover:bg-indigo-700 transition"
           >
-            Reset
+            Apply Filters
           </button>
-        )}
+          {(searchInput || selectedCategory || minPrice || maxPrice || stockStatus || sortBy !== "name" || sortDir !== "asc") && (
+            <button
+              type="button"
+              onClick={handleReset}
+              className="bg-gray-100 text-gray-700 px-5 py-2 rounded-lg hover:bg-gray-200 transition"
+            >
+              Reset All
+            </button>
+          )}
+        </div>
       </form>
 
       {loading ? (
@@ -122,9 +204,9 @@ export default function ProductListPage() {
       ) : products.length === 0 ? (
         <div className="text-center py-16 text-gray-500">
           No products found.{" "}
-          {(searchInput || selectedCategory) && (
+          {(searchInput || selectedCategory || minPrice || maxPrice || stockStatus || sortBy !== "name" || sortDir !== "asc") && (
             <button onClick={handleReset} className="text-indigo-600 hover:text-indigo-800 font-medium">
-              Clear filters
+              Clear all filters
             </button>
           )}
         </div>
