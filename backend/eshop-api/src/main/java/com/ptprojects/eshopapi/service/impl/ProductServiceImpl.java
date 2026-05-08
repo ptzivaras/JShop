@@ -50,8 +50,8 @@ public class ProductServiceImpl implements ProductService {
 
         // Apply additional filters
         results = results.stream()
-                .filter(product -> !hasMinPrice || product.getPrice() >= minPrice)
-                .filter(product -> !hasMaxPrice || product.getPrice() <= maxPrice)
+                .filter(product -> !hasMinPrice || product.getPrice().compareTo(new java.math.BigDecimal(minPrice)) >= 0)
+                .filter(product -> !hasMaxPrice || product.getPrice().compareTo(new java.math.BigDecimal(maxPrice)) <= 0)
                 .filter(product -> !hasStockStatus || matchesStockStatus(product, stockStatus))
                 .toList();
 
@@ -78,7 +78,7 @@ public class ProductServiceImpl implements ProductService {
                     int cmp = 0;
                     switch (sortBy.toLowerCase()) {
                         case "name" -> cmp = p1.getName().compareToIgnoreCase(p2.getName());
-                        case "price" -> cmp = Double.compare(p1.getPrice(), p2.getPrice());
+                        case "price" -> cmp = p1.getPrice().compareTo(p2.getPrice());
                         case "stock" -> cmp = Integer.compare(p1.getStockQuantity(), p2.getStockQuantity());
                         default -> cmp = 0;
                     }

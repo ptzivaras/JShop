@@ -2,7 +2,10 @@ import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { getProductById, deleteProduct } from "../api/productApi";
 import { addItemToCart } from "../api/cartApi";
+import { getProductReviews, getProductRatingSummary, createReview, updateReview } from "../api/reviewApi";
 import { useAuth } from "../context/AuthContext";
+import ReviewForm from "../components/ReviewForm";
+import ReviewList from "../components/ReviewList";
 
 export default function ProductDetailPage() {
   const { id } = useParams();
@@ -14,6 +17,12 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [adding, setAdding] = useState(false);
   const [addMessage, setAddMessage] = useState("");
+  const [reviews, setReviews] = useState([]);
+  const [ratingSummary, setRatingSummary] = useState(null);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewError, setReviewError] = useState("");
+  const [editingReviewId, setEditingReviewId] = useState(null);
   const isAdmin = user?.role === "ADMIN";
 
   useEffect(() => {
@@ -29,6 +38,25 @@ export default function ProductDetailPage() {
       }
     };
     fetchProduct();
+  }, [id]);
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        setReviewsLoading(true);
+        const [reviewsRes, summaryRes] = await Promise.all([
+          getProductReviews(id),
+          getProductRatingSummary(id),
+        ]);
+        setReviews(reviewsRes.data);
+        setRatingSummary(summaryRes.data);
+      } catch (err) {
+        console.error("Failed to load reviews");
+      } finally {
+        setReviewsLoading(false);
+      }
+    };
+    fetchReviews();
   }, [id]);
 
   const handleDelete = async () => {
@@ -65,6 +93,46 @@ export default function ProductDetailPage() {
     } finally {
       setAdding(false);
     }
+  };
+
+  const handleReviewSubmit = async (reviewData) => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      setSubmittingReview(true);
+      setReviewError("");
+
+      if (editingReviewId) {
+        await updateReview(editingReviewId, reviewData);
+      } else {
+        await createReview(id, reviewData);
+      }
+
+      // Refresh reviews
+      const [reviewsRes, summaryRes] = await Promise.all([
+        getProductReviews(id),
+        getProductRatingSummary(id),
+      ]);
+      setReviews(reviewsRes.data);
+      setRatingSummary(summaryRes.data);
+      setEditingReviewId(null);
+    } catch (err) {
+      setReviewError(err.response?.data?.message || "Failed to submit review");
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
+  const handleEditReview = (review) => {
+    setEditingReviewId(review.id);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleReviewDeleted = (reviewId) => {
+    setReviews((prev) => prev.filter((r) => r.id !== reviewId));
   };
 
   if (loading) {
@@ -160,6 +228,49 @@ export default function ProductDetailPage() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Reviews Section */}
+      <div className="mt-8">
+        <div className="flex items-center gap-4 mb-6">
+          <h2 className="text-2xl font-bold text-gray-900">Reviews</h2>
+          {ratingSummary && (
+            <div className="flex items-center gap-2">
+              <div className="flex text-yellow-400">
+                {[...Array(5)].map((_, i) => (
+                  <span key={i} className={i < Math.round(ratingSummary.averageRating) ? "text-yellow-400" : "text-gray-300"}>
+                    ★
+                  </span>
+                ))}
+              </div>
+              <span className="text-gray-700 font-semibold">
+                {ratingSummary.averageRating.toFixed(1)} ({ratingSummary.totalReviews} reviews)
+              </span>
+            </div>
+          )}
+        </div>
+
+        {user?.role === "CUSTOMER" && (
+          <>
+            {reviewError && (
+              <div className="text-red-600 text-sm mb-4 bg-red-50 p-3 rounded">
+                {reviewError}
+              </div>
+            )}
+            <ReviewForm
+              onSubmit={handleReviewSubmit}
+              isLoading={submittingReview}
+              initialRating={editingReviewId ? reviews.find((r) => r.id === editingReviewId)?.rating || 5 : 5}
+              initialComment={editingReviewId ? reviews.find((r) => r.id === editingReviewId)?.comment || "" : ""}
+            />
+          </>
+        )}
+
+        {reviewsLoading ? (
+          <div className="text-center py-8 text-gray-500">Loading reviews...</div>
+        ) : (
+          <ReviewList reviews={reviews} onReviewDeleted={handleReviewDeleted} onEditReview={handleEditReview} />
+        )}
       </div>
     </div>
   );
