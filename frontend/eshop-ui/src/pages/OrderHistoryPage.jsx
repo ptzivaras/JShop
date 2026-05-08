@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { getAllOrders, getMyOrders, updateOrderStatus } from "../api/orderApi";
 import { useAuth } from "../context/AuthContext";
+import OrderTrackingTimeline from "../components/OrderTrackingTimeline";
 
 const ORDER_STATUSES = ["PENDING", "CONFIRMED", "SHIPPED", "DELIVERED", "CANCELLED"];
 
@@ -160,6 +161,8 @@ export default function OrderHistoryPage() {
                   </select>
                 </div>
               )}
+
+              <OrderTrackingTimeline status={order.status} />
 
               <div className="divide-y">
                 {(order.orderItems || []).map((item) => (
