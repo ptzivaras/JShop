@@ -30,9 +30,12 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductResponse> searchProducts(String q, Long categoryId) {
+    public List<ProductResponse> searchProducts(String q, Long categoryId, Double minPrice, Double maxPrice, String stockStatus, String sortBy, String sortDir) {
         boolean hasQuery = q != null && !q.isBlank();
         boolean hasCategory = categoryId != null;
+        boolean hasMinPrice = minPrice != null;
+        boolean hasMaxPrice = maxPrice != null;
+        boolean hasStockStatus = stockStatus != null && !stockStatus.isBlank();
 
         List<Product> results;
         if (hasQuery && hasCategory) {
@@ -45,7 +48,43 @@ public class ProductServiceImpl implements ProductService {
             results = productRepository.findAll();
         }
 
+        // Apply additional filters
+        results = results.stream()
+                .filter(product -> !hasMinPrice || product.getPrice() >= minPrice)
+                .filter(product -> !hasMaxPrice || product.getPrice() <= maxPrice)
+                .filter(product -> !hasStockStatus || matchesStockStatus(product, stockStatus))
+                .toList();
+
+        // Apply sorting
+        results = sortProducts(results, sortBy, sortDir);
+
         return results.stream().map(this::mapToResponse).toList();
+    }
+
+    private boolean matchesStockStatus(Product product, String stockStatus) {
+        int stock = product.getStockQuantity();
+        return switch (stockStatus.toLowerCase()) {
+            case "in-stock" -> stock > 5; // Assuming LOW_STOCK_THRESHOLD = 5
+            case "low-stock" -> stock > 0 && stock <= 5;
+            case "out-of-stock" -> stock == 0;
+            default -> true;
+        };
+    }
+
+    private List<Product> sortProducts(List<Product> products, String sortBy, String sortDir) {
+        boolean ascending = "asc".equalsIgnoreCase(sortDir);
+        return products.stream()
+                .sorted((p1, p2) -> {
+                    int cmp = 0;
+                    switch (sortBy.toLowerCase()) {
+                        case "name" -> cmp = p1.getName().compareToIgnoreCase(p2.getName());
+                        case "price" -> cmp = Double.compare(p1.getPrice(), p2.getPrice());
+                        case "stock" -> cmp = Integer.compare(p1.getStockQuantity(), p2.getStockQuantity());
+                        default -> cmp = 0;
+                    }
+                    return ascending ? cmp : -cmp;
+                })
+                .toList();
     }
 
     @Override

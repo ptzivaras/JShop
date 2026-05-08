@@ -28,8 +28,13 @@ public class ProductController {
     @GetMapping("/search")
     public ResponseEntity<List<ProductResponse>> searchProducts(
             @RequestParam(required = false) String q,
-            @RequestParam(required = false) Long categoryId) {
-        return ResponseEntity.ok(productService.searchProducts(q, categoryId));
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice,
+            @RequestParam(required = false) String stockStatus,
+            @RequestParam(required = false, defaultValue = "name") String sortBy,
+            @RequestParam(required = false, defaultValue = "asc") String sortDir) {
+        return ResponseEntity.ok(productService.searchProducts(q, categoryId, minPrice, maxPrice, stockStatus, sortBy, sortDir));
     }
 
     @GetMapping("/{id}")

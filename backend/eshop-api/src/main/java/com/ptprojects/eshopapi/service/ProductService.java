@@ -9,7 +9,7 @@ public interface ProductService {
 
     List<ProductResponse> getAllProducts();
 
-    List<ProductResponse> searchProducts(String q, Long categoryId);
+    List<ProductResponse> searchProducts(String q, Long categoryId, Double minPrice, Double maxPrice, String stockStatus, String sortBy, String sortDir);
 
     ProductResponse getProductById(Long id);
 
