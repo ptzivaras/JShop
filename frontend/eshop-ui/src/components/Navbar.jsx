@@ -32,6 +32,7 @@ export default function Navbar() {
             {user && (
               <>
                 <Link to="/orders" className={linkClass("/orders")}>Orders</Link>
+                <Link to="/wishlist" className={linkClass("/wishlist")}>Wishlist</Link>
                 <Link to="/cart" className={linkClass("/cart")}>🛒 Cart</Link>
                 <Link to="/profile" className={linkClass("/profile")}>Profile</Link>
                 {user.role === "ADMIN" && (

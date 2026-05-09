@@ -9,6 +9,7 @@ import ProductFormPage from "./pages/ProductFormPage";
 import CartPage from "./pages/CartPage";
 import OrderHistoryPage from "./pages/OrderHistoryPage";
 import OrderDetailPage from "./pages/OrderDetailPage";
+import WishlistPage from "./pages/WishlistPage";
 import CategoriesPage from "./pages/CategoriesPage";
 import UserProfilePage from "./pages/UserProfilePage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
@@ -33,6 +34,7 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<SignupPage />} />
             <Route path="/cart" element={<ProtectedRoute><CartPage /></ProtectedRoute>} />
+            <Route path="/wishlist" element={<ProtectedRoute><WishlistPage /></ProtectedRoute>} />
             <Route path="/orders" element={<ProtectedRoute><OrderHistoryPage /></ProtectedRoute>} />
             <Route path="/orders/:id" element={<ProtectedRoute><OrderDetailPage /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><UserProfilePage /></ProtectedRoute>} />

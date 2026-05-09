@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { getProductById, deleteProduct } from "../api/productApi";
 import { addItemToCart } from "../api/cartApi";
 import { getProductReviews, getProductRatingSummary, createReview, updateReview } from "../api/reviewApi";
+import { addToWishlist, isProductInWishlist } from "../api/wishlistApi";
 import { useAuth } from "../context/AuthContext";
 import ReviewForm from "../components/ReviewForm";
 import ReviewList from "../components/ReviewList";
@@ -23,6 +24,9 @@ export default function ProductDetailPage() {
   const [submittingReview, setSubmittingReview] = useState(false);
   const [reviewError, setReviewError] = useState("");
   const [editingReviewId, setEditingReviewId] = useState(null);
+  const [isInWishlist, setIsInWishlist] = useState(false);
+  const [wishlistProcessing, setWishlistProcessing] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
   const isAdmin = user?.role === "ADMIN";
 
   useEffect(() => {
@@ -59,6 +63,27 @@ export default function ProductDetailPage() {
     fetchReviews();
   }, [id]);
 
+  useEffect(() => {
+    const fetchWishlistStatus = async () => {
+      if (!user) {
+        setIsInWishlist(false);
+        return;
+      }
+
+      try {
+        setWishlistLoading(true);
+        const response = await isProductInWishlist(id);
+        setIsInWishlist(response.data);
+      } catch (err) {
+        console.error("Failed to load wishlist status");
+      } finally {
+        setWishlistLoading(false);
+      }
+    };
+
+    fetchWishlistStatus();
+  }, [id, user]);
+
   const handleDelete = async () => {
     if (!window.confirm("Are you sure you want to delete this product?")) return;
     try {
@@ -92,6 +117,23 @@ export default function ProductDetailPage() {
       setAddMessage("Failed to add product to cart.");
     } finally {
       setAdding(false);
+    }
+  };
+
+  const handleAddToWishlist = async () => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      setWishlistProcessing(true);
+      await addToWishlist(product.id);
+      setIsInWishlist(true);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setWishlistProcessing(false);
     }
   };
 
@@ -201,13 +243,24 @@ export default function ProductDetailPage() {
                 {addMessage}
               </p>
             )}
-            <div className="flex gap-3 mt-8">
+            <div className="flex flex-col gap-3 mt-8 sm:flex-row">
               <button
                 onClick={handleAddToCart}
                 disabled={adding || product.stockQuantity <= 0}
                 className="flex-1 bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition font-medium disabled:bg-indigo-300 disabled:cursor-not-allowed"
               >
                 {adding ? "Adding..." : "Add to Cart"}
+              </button>
+              <button
+                onClick={handleAddToWishlist}
+                disabled={wishlistLoading || wishlistProcessing}
+                className={`flex-1 ${isInWishlist ? "bg-gray-200 text-gray-700" : "bg-white text-indigo-600 border border-indigo-600 hover:bg-indigo-50"} py-3 rounded-lg transition font-medium disabled:opacity-60 disabled:cursor-not-allowed`}
+              >
+                {wishlistLoading || wishlistProcessing
+                  ? "Saving..."
+                  : isInWishlist
+                  ? "In Wishlist"
+                  : "Add to Wishlist"}
               </button>
               {isAdmin && (
                 <>
