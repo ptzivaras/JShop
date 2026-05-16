@@ -3,16 +3,16 @@ Full-stack e-commerce application built with Spring Boot, React and PostgreSQL.
 
 ## Frontend Folder Structure
 src/
- ├── api/            // axios calls
- ├── components/     // reusable (Navbar, Card, etc.)
- ├── pages/          // main pages
- ├── features/       // optional (cart logic, auth)
- ├── hooks/          // custom hooks
- ├── context/        // auth/cart state (or Redux)
- ├── routes/         // router config
- ├── utils/          // helpers
- ├── App.jsx
- └── main.jsx
+ ─ api/            // axios calls
+ ─ components/     // reusable (Navbar, Card, etc.)
+ ─ pages/          // main pages
+ ─ features/       // optional (cart logic, auth)
+ ─ hooks/          // custom hooks
+ ─ context/        // auth/cart state (or Redux)
+ ─ routes/         // router config
+ ─ utils/          // helpers
+ ─ App.jsx
+ ─ main.jsx
 
 ##  API Endpoints
 ###  Auth
