@@ -7,6 +7,7 @@ import com.ptprojects.eshopapi.repository.OrderRepository;
 import com.ptprojects.eshopapi.repository.ProductRepository;
 import com.ptprojects.eshopapi.repository.ShoppingCartRepository;
 import com.ptprojects.eshopapi.repository.UserRepository;
+import com.ptprojects.eshopapi.service.DiscountService;
 import com.ptprojects.eshopapi.service.OrderService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,15 +24,18 @@ public class OrderServiceImpl implements OrderService {
     private final ShoppingCartRepository shoppingCartRepository;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
+    private final DiscountService discountService;
 
     public OrderServiceImpl(OrderRepository orderRepository,
                             ShoppingCartRepository shoppingCartRepository,
                             UserRepository userRepository,
-                            ProductRepository productRepository) {
+                            ProductRepository productRepository,
+                            DiscountService discountService) {
         this.orderRepository = orderRepository;
         this.shoppingCartRepository = shoppingCartRepository;
         this.userRepository = userRepository;
         this.productRepository = productRepository;
+        this.discountService = discountService;
     }
 
     @Override
@@ -57,7 +61,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public OrderResponse createOrder(Long userId) {
+    public OrderResponse createOrder(Long userId, String couponCode) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
 
@@ -101,10 +105,19 @@ public class OrderServiceImpl implements OrderService {
             );
         }
 
-        order.setTotalPrice(totalPrice);
+        BigDecimal discountAmount = discountService.calculateDiscount(couponCode, totalPrice);
+        BigDecimal finalTotal = totalPrice.subtract(discountAmount).max(BigDecimal.ZERO);
+
+        order.setTotalPrice(finalTotal);
         order.setOrderItems(orderItems);
+        if (couponCode != null && !couponCode.isBlank()) {
+            order.setCouponCode(couponCode.toUpperCase());
+            order.setDiscountAmount(discountAmount);
+        }
 
         Order savedOrder = orderRepository.save(order);
+
+        discountService.redeemCoupon(couponCode);
 
         cart.getCartItems().clear();
         shoppingCartRepository.save(cart);
@@ -132,6 +145,8 @@ public class OrderServiceImpl implements OrderService {
         response.setOrderDate(order.getOrderDate());
         response.setTotalPrice(order.getTotalPrice());
         response.setStatus(order.getStatus() != null ? order.getStatus().name() : OrderStatus.PENDING.name());
+        response.setCouponCode(order.getCouponCode());
+        response.setDiscountAmount(order.getDiscountAmount());
         if (order.getUser() != null) {
             response.setUserId(order.getUser().getId());
             response.setUsername(order.getUser().getUsername());

@@ -16,6 +16,7 @@ import UserProfilePage from "./pages/UserProfilePage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 import AdminProductsPage from "./pages/AdminProductsPage";
 import AdminOrdersPage from "./pages/AdminOrdersPage";
+import AdminDiscountsPage from "./pages/AdminDiscountsPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 
@@ -43,6 +44,7 @@ function App() {
             <Route path="/admin" element={<ProtectedRoute allowedRoles={["ADMIN"]}><AdminDashboardPage /></ProtectedRoute>} />
             <Route path="/admin/products" element={<ProtectedRoute allowedRoles={["ADMIN"]}><AdminProductsPage /></ProtectedRoute>} />
             <Route path="/admin/orders" element={<ProtectedRoute allowedRoles={["ADMIN"]}><AdminOrdersPage /></ProtectedRoute>} />
+            <Route path="/admin/discounts" element={<ProtectedRoute allowedRoles={["ADMIN"]}><AdminDiscountsPage /></ProtectedRoute>} />
           </Routes>
         </div>
       </AuthProvider>

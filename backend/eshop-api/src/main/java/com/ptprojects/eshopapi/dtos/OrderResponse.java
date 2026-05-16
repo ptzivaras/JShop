@@ -12,6 +12,8 @@ public class OrderResponse {
     private LocalDateTime orderDate;
     private BigDecimal totalPrice;
     private String status;
+    private String couponCode;
+    private BigDecimal discountAmount;
     private List<OrderItemResponse> orderItems;
 
     public OrderResponse() {
@@ -64,6 +66,12 @@ public class OrderResponse {
     public void setStatus(String status) {
         this.status = status;
     }
+
+    public String getCouponCode() { return couponCode; }
+    public void setCouponCode(String couponCode) { this.couponCode = couponCode; }
+
+    public BigDecimal getDiscountAmount() { return discountAmount; }
+    public void setDiscountAmount(BigDecimal discountAmount) { this.discountAmount = discountAmount; }
 
     public List<OrderItemResponse> getOrderItems() {
         return orderItems;

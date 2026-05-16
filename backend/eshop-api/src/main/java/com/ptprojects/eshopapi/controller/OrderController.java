@@ -1,5 +1,6 @@
 package com.ptprojects.eshopapi.controller;
 
+import com.ptprojects.eshopapi.dtos.CheckoutRequest;
 import com.ptprojects.eshopapi.dtos.OrderResponse;
 import com.ptprojects.eshopapi.dtos.UpdateOrderStatusRequest;
 import com.ptprojects.eshopapi.repository.UserRepository;
@@ -76,10 +77,12 @@ public class OrderController {
     @PostMapping("/user/{userId}")
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<?> createOrder(@PathVariable Long userId,
+                                         @RequestBody(required = false) CheckoutRequest request,
                                          Authentication authentication) {
         ensureOwnResource(userId, authentication);
+        String couponCode = request != null ? request.getCouponCode() : null;
         try {
-            return ResponseEntity.status(HttpStatus.CREATED).body(orderService.createOrder(userId));
+            return ResponseEntity.status(HttpStatus.CREATED).body(orderService.createOrder(userId, couponCode));
         } catch (IllegalStateException ex) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("error", ex.getMessage()));
@@ -95,10 +98,12 @@ public class OrderController {
 
     @PostMapping("/me")
     @PreAuthorize("hasRole('CUSTOMER')")
-    public ResponseEntity<?> createMyOrder(Authentication authentication) {
+    public ResponseEntity<?> createMyOrder(@RequestBody(required = false) CheckoutRequest request,
+                                           Authentication authentication) {
         Long currentUserId = resolveCurrentUserId(authentication);
+        String couponCode = request != null ? request.getCouponCode() : null;
         try {
-            return ResponseEntity.status(HttpStatus.CREATED).body(orderService.createOrder(currentUserId));
+            return ResponseEntity.status(HttpStatus.CREATED).body(orderService.createOrder(currentUserId, couponCode));
         } catch (IllegalStateException ex) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("error", ex.getMessage()));

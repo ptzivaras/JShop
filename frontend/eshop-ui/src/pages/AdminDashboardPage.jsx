@@ -229,6 +229,7 @@ export default function AdminDashboardPage() {
             <div className="space-y-2 text-sm">
               <Link to="/admin/products" className="block text-indigo-600 hover:text-indigo-800">Manage products</Link>
               <Link to="/admin/orders" className="block text-indigo-600 hover:text-indigo-800">Manage orders</Link>
+              <Link to="/admin/discounts" className="block text-indigo-600 hover:text-indigo-800">Manage discounts</Link>
               <Link to="/categories" className="block text-indigo-600 hover:text-indigo-800">Manage categories</Link>
             </div>
             <p className="text-xs text-gray-500 mt-4">Categories total: {stats.categories}</p>

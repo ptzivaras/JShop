@@ -26,6 +26,10 @@ public class Order {
     @Column(length = 20)
     private OrderStatus status;
 
+    private String couponCode;
+
+    private BigDecimal discountAmount;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderItem> orderItems;
 
@@ -77,6 +81,12 @@ public class Order {
     public void setStatus(OrderStatus status) {
         this.status = status;
     }
+
+    public String getCouponCode() { return couponCode; }
+    public void setCouponCode(String couponCode) { this.couponCode = couponCode; }
+
+    public BigDecimal getDiscountAmount() { return discountAmount; }
+    public void setDiscountAmount(BigDecimal discountAmount) { this.discountAmount = discountAmount; }
 
     public List<OrderItem> getOrderItems() {
         return orderItems;

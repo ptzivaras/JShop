@@ -13,7 +13,7 @@ public interface OrderService {
 
     List<OrderResponse> getOrdersByUserId(Long userId);
 
-    OrderResponse createOrder(Long userId);
+    OrderResponse createOrder(Long userId, String couponCode);
 
     OrderResponse updateOrderStatus(Long id, OrderStatus status);
 }

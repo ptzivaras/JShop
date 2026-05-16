@@ -12,8 +12,8 @@ export const getMyOrders = () => {
   return axiosClient.get("/orders/me");
 };
 
-export const createOrder = () => {
-  return axiosClient.post("/orders/me");
+export const createOrder = (couponCode = null) => {
+  return axiosClient.post("/orders/me", couponCode ? { couponCode } : {});
 };
 
 export const updateOrderStatus = (orderId, status) => {
